@@ -1,0 +1,184 @@
+/* ---------- Reset visual do Streamlit para uma cara de produto acabado ---------- */
+#MainMenu, footer, [data-testid="stToolbar"] {
+    visibility: hidden;
+    height: 0;
+}
+
+[data-testid="stHeader"] {
+    background: transparent;
+    height: 0.5rem;
+}
+
+[data-testid="stMainBlockContainer"] {
+    max-width: 1080px;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+/* ---------- Cabeçalho customizado ---------- */
+.app-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.25rem 1.6rem;
+    margin-bottom: 1.75rem;
+    background: linear-gradient(135deg, #131B33 0%, #1E3AA8 55%, #4F7FFF 100%);
+    border: 1px solid #2C3F73;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(79, 127, 255, 0.18);
+}
+
+.app-header__icon {
+    font-size: 2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.app-header__title {
+    color: #F8FAFF;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.app-header__subtitle {
+    color: #C3D0FF;
+    font-size: 0.86rem;
+    margin: 0.15rem 0 0;
+}
+
+/* ---------- Indicador de etapas (wizard) ---------- */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.75rem;
+}
+
+.step-indicator__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.95rem;
+    border-radius: 999px;
+    background: #141C2E;
+    color: #7C8AA8;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid #26314A;
+    transition: all 0.2s ease;
+}
+
+.step-indicator__item.is-active {
+    background: rgba(79, 127, 255, 0.14);
+    color: #8FADFF;
+    border-color: #4F7FFF;
+    box-shadow: 0 0 0 3px rgba(79, 127, 255, 0.1);
+}
+
+.step-indicator__item.is-done {
+    background: rgba(34, 197, 94, 0.1);
+    color: #6EE7A8;
+    border-color: #1F7A47;
+}
+
+.step-indicator__line {
+    flex: 1;
+    height: 1px;
+    background: #26314A;
+}
+
+/* ---------- Cards / containers (st.container(border=True)) ---------- */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #101828 !important;
+    border: 1px solid #26314A !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] > div {
+    border-radius: 16px;
+}
+
+/* ---------- Uploader ---------- */
+[data-testid="stFileUploaderDropzone"] {
+    background-color: #0D1524;
+    border: 1.5px dashed #35446B;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: #4F7FFF;
+    background-color: rgba(79, 127, 255, 0.06);
+}
+
+/* ---------- Métricas ---------- */
+[data-testid="stMetric"] {
+    background: #0D1524;
+    border: 1px solid #26314A;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+}
+
+[data-testid="stMetricValue"] {
+    color: #F1F5FF;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #8B99B3;
+}
+
+/* ---------- Botões ---------- */
+[data-testid="stButton"] button,
+[data-testid="stDownloadButton"] button {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.55rem 1.4rem;
+}
+
+[data-testid="stBaseButton-primary"] {
+    box-shadow: 0 4px 16px rgba(79, 127, 255, 0.35);
+}
+
+[data-testid="stDownloadButton"] button {
+    background-color: #1FAA5C;
+    border-color: #1FAA5C;
+    color: #FFFFFF;
+    box-shadow: 0 4px 16px rgba(31, 170, 92, 0.3);
+}
+
+[data-testid="stDownloadButton"] button:hover {
+    background-color: #17924E;
+    border-color: #17924E;
+    color: #FFFFFF;
+}
+
+/* ---------- Barra de progresso ---------- */
+[data-testid="stProgress"] div div div {
+    background-color: #4F7FFF;
+}
+
+/* ---------- Legenda de cores ---------- */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin: 0.4rem 0 0.8rem;
+}
+
+.legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: #9AA7C2;
+}
+
+.legend__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    display: inline-block;
+}
