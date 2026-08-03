@@ -1,4 +1,4 @@
-"""Interface Streamlit, Consulta em lote de regime tributário por CNPJ."""
+"""Interface Streamlit"""
 import re
 from pathlib import Path
 
@@ -21,6 +21,7 @@ from src.processor import (
     processar_lote,
 )
 
+# Configurações da página e estilo
 BASE_DIR = Path(__file__).parent
 STATUS_COM_FALHA = {STATUS_INVALIDO, STATUS_E_CPF, STATUS_NAO_ENCONTRADO, STATUS_ERRO}
 
@@ -33,6 +34,7 @@ _COR_FALHA = ("#3A1414", "#F5A3A3")
 
 
 def estilizar_resultado(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
+    """Aplica cores de fundo e texto as linhas do DataFrame de resultado, de acordo com o regime tributário ou status da consulta."""
     def cor_da_linha(linha: pd.Series) -> list[str]:
         if linha["Status da Consulta"] in STATUS_COM_FALHA:
             bg, cor_texto = _COR_FALHA
@@ -45,6 +47,7 @@ def estilizar_resultado(df: pd.DataFrame) -> "pd.io.formats.style.Styler":
 
 
 def legenda_cores() -> None:
+    """Exibe a legenda de cores para os regimes tributários e erros."""
     itens = [(regime, bg, texto) for regime, (bg, texto) in _CORES_POR_REGIME.items()]
     itens.append(("Erro / não encontrado", _COR_FALHA[0], _COR_FALHA[1]))
 
@@ -64,11 +67,13 @@ st.set_page_config(
 
 
 def carregar_css() -> None:
+    """Carrega o CSS customizado para a interface Streamlit."""
     caminho_css = BASE_DIR / "assets" / "style.css"
     st.markdown(f"<style>{caminho_css.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
 def cabecalho() -> None:
+    """Exibe o cabeçalho da página contendo o título e subtítulo do app."""
     st.markdown(
         """
         <div class="app-header">
@@ -84,6 +89,7 @@ def cabecalho() -> None:
 
 
 def indicador_de_etapas(fase_atual: str) -> None:
+    """Exibe a barra de progresso com as etapas do fluxo: upload, processamento e resultado."""
     etapas = [("upload", "① Upload"), ("processando", "② Processamento"), ("resultado", "③ Resultado")]
     ordem = [chave for chave, _ in etapas]
     indice_atual = ordem.index(fase_atual)
@@ -104,6 +110,7 @@ def indicador_de_etapas(fase_atual: str) -> None:
 
 
 def resetar_para_upload() -> None:
+    """Limpa o estado da sessão para permitir uma nova consulta."""
     for chave in ("fase", "df_original", "coluna_cnpj", "coluna_empresa", "resultados", "nome_arquivo"):
         st.session_state.pop(chave, None)
 

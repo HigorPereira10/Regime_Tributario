@@ -7,6 +7,7 @@ import pandas as pd
 from .classifier import MEI, REGIME_NORMAL, SIMPLES_NACIONAL
 from .processor import STATUS_E_CPF, STATUS_ERRO, STATUS_INVALIDO, STATUS_NAO_ENCONTRADO
 
+# Colunas candidatas a conter CNPJs ou nomes de empresas, usadas para detecção automática.
 COLUNAS_CANDIDATAS_CNPJ = ("cnpj",)
 COLUNAS_CANDIDATAS_EMPRESA = ("empresa", "nome", "razao social", "razão social", "cliente")
 
@@ -57,10 +58,9 @@ def montar_dataframe_resultado(
     coluna_cnpj: str,
     coluna_empresa: Optional[str] = None,
 ) -> pd.DataFrame:
-    """Monta a planilha de resultado com CNPJ, Nome da Empresa e Regime Tributário
-    logo nas três primeiras colunas. O nome da empresa vem da planilha original
-    quando disponível; caso contrário (ou se a célula estiver vazia), usa a
-    razão social retornada pela BrasilAPI.
+    """Monta a planilha de resultado com CNPJ, Nome da Empresa e Regime Tributário logo nas três primeiras colunas.
+    O nome da empresa vem da planilha original quando disponível; caso contrário (ou se a célula estiver vazia), 
+    usa a razão social retornada pela BrasilAPI.
     """
     df_original = df_original.reset_index(drop=True)
 

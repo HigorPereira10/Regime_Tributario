@@ -6,4 +6,5 @@ dist/
 *.spec.bak
 planilha/
 .streamlit/secrets.toml
+.env
 ~$*

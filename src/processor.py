@@ -1,4 +1,4 @@
-"""Orquestra a consulta em lote: validação, chamadas concorrentes e progresso."""
+"""Organiza a consulta em lote: validação, chamadas concorrentes e progresso."""
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -13,19 +13,18 @@ from .api_client import (
 )
 from .classifier import classificar_regime
 from .cnpj_utils import formatar_cnpj, formatar_cpf, limpar_cnpj, validar_cnpj, validar_cpf
+from .config import INTERVALO_FALLBACK, INTERVALO_MINIMO, MAX_WORKERS
 
-MAX_WORKERS_PADRAO = 5
-INTERVALO_MINIMO_PADRAO = 0.25  # no máximo ~4 requisições/s somadas entre todas as threads
-INTERVALO_FALLBACK_PADRAO = 21.0  # CNPJ.ws (reforço) permite só 3 requisições/minuto
+MAX_WORKERS_PADRAO = MAX_WORKERS
+INTERVALO_MINIMO_PADRAO = INTERVALO_MINIMO  # No máximo 4 requisições somadas entre todas as threads
+INTERVALO_FALLBACK_PADRAO = INTERVALO_FALLBACK  # CNPJ.ws (reforço) permite só 3 requisições/minuto
 
 
 class LimitadorDeTaxa:
-    """Impõe um intervalo mínimo entre o início de requisições, mesmo com várias
-    threads em paralelo. A BrasilAPI é gratuita e aplica rate limit (HTTP 429)
-    quando o volume de chamadas simultâneas é alto, sem isso, lotes grandes
-    (ex: 300+ CNPJs) acabam com boa parte marcada como "Erro na consulta".
+    """Impõe um intervalo mínimo entre o início de requisições, mesmo com várias threads em paralelo. 
+    A BrasilAPI é gratuita e aplica rate limit (HTTP 429) quando o volume de chamadas simultâneas é alto,
+    sem isso, lotes grandes (ex: 300+ CNPJs) acabam com boa parte marcada como "Erro na consulta".
     """
-
     def __init__(self, intervalo_minimo: float):
         self._intervalo_minimo = intervalo_minimo
         self._lock = threading.Lock()
@@ -63,6 +62,7 @@ def _resultado_base(cnpj_bruto: str, status: str, **extra) -> dict:
 
 
 def _processar_um_cnpj(client, cnpj_bruto: str, limitador: LimitadorDeTaxa) -> dict:
+    """Valida e consulta um único CNPJ, retornando o resultado em formato padronizado."""
     if not validar_cnpj(cnpj_bruto):
         if validar_cpf(cnpj_bruto):
             return _resultado_base(cnpj_bruto, STATUS_E_CPF, cnpj_formatado=formatar_cpf(cnpj_bruto))
@@ -76,8 +76,7 @@ def _processar_um_cnpj(client, cnpj_bruto: str, limitador: LimitadorDeTaxa) -> d
     except CNPJNaoEncontrado:
         return _resultado_base(cnpj_bruto, STATUS_NAO_ENCONTRADO)
     except (ErroTemporario, Exception):
-        # Captura ampla e intencional: uma falha isolada (rede, parsing, campo
-        # inesperado da API) nunca deve interromper o lote inteiro.
+        # Captura ampla e intencional: uma falha isolada (rede, parsing, campo inesperado da API) nunca deve interromper o lote inteiro.
         return _resultado_base(cnpj_bruto, STATUS_ERRO)
 
     return _resultado_base(
@@ -98,9 +97,8 @@ def processar_lote(
 ) -> list[dict]:
     """Consulta uma lista de CNPJs em paralelo, preservando a ordem original.
 
-    `progress_callback(concluidos, total, cnpj_atual)` é chamado a cada CNPJ
-    finalizado, permitindo atualizar a UI em tempo real. `intervalo_minimo`
-    controla o espaçamento entre requisições (proteção contra rate limit).
+    `progress_callback(concluidos, total, cnpj_atual)` é chamado a cada CNPJ finalizado, permitindo atualizar a UI em tempo real.
+    `intervalo_minimo` controla o espaçamento entre requisições (proteção contra rate limit).
     """
     total = len(cnpjs)
     resultados: list[Optional[dict]] = [None] * total
@@ -140,9 +138,8 @@ def _reprocessar_falhas_temporarias(
 ) -> None:
     """Revalida os CNPJs marcados como 'Erro na consulta' após uma pequena pausa.
 
-    Na prática, a maior parte desses erros é rate limit passageiro da BrasilAPI
-    durante lotes grandes: o mesmo CNPJ que falhou no meio de uma rajada de
-    requisições responde normalmente segundos depois, fora da rajada.
+    Na prática, a maior parte desses erros é rate limit passageiro da BrasilAPI durante lotes grandes:
+    o mesmo CNPJ que falhou no meio de uma rajada de requisições responde normalmente segundos depois, fora da rajada.
     """
     indices_com_erro = [i for i, r in enumerate(resultados) if r["status"] == STATUS_ERRO]
     if not indices_com_erro:
@@ -170,10 +167,8 @@ def _reprocessar_nao_encontrados_com_fallback(
 ) -> None:
     """Tenta uma fonte alternativa (CNPJ.ws) para CNPJs que a BrasilAPI não encontrou.
 
-    A BrasilAPI atualiza sua base periodicamente: empresas abertas há poucos
-    dias podem já estar ativas na Receita mas ainda não constar lá. A fonte de
-    reforço tem limite de 3 consultas/minuto, então só é usada para essa
-    sobra pontual — nunca no lote inteiro.
+    A BrasilAPI atualiza sua base periodicamente: empresas abertas há poucos dias podem já estar ativas na Receita mas ainda não constar lá.
+    A fonte de reforço tem limite de 3 consultas/minuto, então só é usada para essa sobra pontual, nunca no lote inteiro.
     """
     indices_nao_encontrados = [i for i, r in enumerate(resultados) if r["status"] == STATUS_NAO_ENCONTRADO]
     if not indices_nao_encontrados:
@@ -192,7 +187,7 @@ def _reprocessar_nao_encontrados_com_fallback(
             try:
                 dados = consultar_cnpj_fallback(client, cnpj_limpo)
             except (CNPJNaoEncontrado, ErroTemporario, Exception):
-                continue  # mantém o status "CNPJ não encontrado"
+                continue  # Mantém o status "CNPJ não encontrado"
 
             resultados[indice] = _resultado_base(
                 cnpj_bruto,

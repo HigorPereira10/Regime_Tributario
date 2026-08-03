@@ -1,5 +1,4 @@
-"""Ponto de entrada do aplicativo desktop: sobe o Streamlit em segundo plano e
-abre uma janela nativa (pywebview) apontando para ele — sem terminal, sem navegador."""
+"""Sobe o Streamlit em segundo plano e abre uma janela nativa (pywebview) apontando para ele, sem terminal, sem navegador."""
 import ctypes
 import socket
 import sys
@@ -31,9 +30,9 @@ def iniciar_servidor_streamlit(porta: int) -> None:
     from streamlit.web import bootstrap
 
     # O servidor roda numa thread secundária (a principal fica com o pywebview),
-    # e signal.signal() só é permitido na thread principal do interpretador —
-    # desativamos esse handler interno, já que o encerramento é feito ao
-    # fechar a janela (o processo inteiro termina e a thread daemon morre junto).
+    # e signal.signal() só é permitido na thread principal do interpretador,
+    # desativamos esse handler interno, já que o encerramento é feito ao fechar a janela 
+    # (o processo inteiro termina e a thread daemon morre junto).
     bootstrap._set_up_signal_handler = lambda *args, **kwargs: None
 
     flag_options = {
@@ -66,9 +65,8 @@ def main() -> None:
 
     aguardar_servidor(porta)
 
-    # O pywebview desativa downloads por padrão na janela nativa (o clique no
-    # botão "Baixar Planilha" seria cancelado silenciosamente); precisamos
-    # habilitar para que o diálogo "Salvar como" do Windows apareça.
+    # O pywebview desativa downloads por padrão na janela nativa (o clique no botão "Baixar Planilha" seria cancelado silenciosamente);
+    # precisamos habilitar para que o diálogo "Salvar como" do Windows apareça.
     webview.settings["ALLOW_DOWNLOADS"] = True
 
     try:
@@ -81,11 +79,9 @@ def main() -> None:
         )
         webview.start()
     except Exception:
-        # A janela nativa depende do WebView2/.NET Framework do Windows. Em
-        # alguns computadores (ex: DLLs bloqueadas pelo Windows por terem
-        # vindo de uma pasta de rede/pendrive) essa inicialização falha. Em
-        # vez de travar com um erro no console, caímos para o navegador padrão
-        # — o app continua funcionando, só sem a janela própria.
+        # A janela nativa depende do WebView2/.NET Framework do Windows. Em alguns computadores
+        # (ex: DLLs bloqueadas pelo Windows por terem vindo de uma pasta de rede/pendrive) essa inicialização falha. 
+        # Em vez de travar com um erro no console, caímos para o navegador padrão, o app continua funcionando, só sem a janela própria.
         _abrir_no_navegador_padrao(porta)
 
 

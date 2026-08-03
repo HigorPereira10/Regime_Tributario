@@ -1,4 +1,4 @@
-"""Regra de negócio: classificação do regime tributário a partir do retorno da BrasilAPI."""
+"""Classificação do regime tributário a partir do retorno da BrasilAPI."""
 
 MEI = "MEI"
 SIMPLES_NACIONAL = "Simples Nacional"

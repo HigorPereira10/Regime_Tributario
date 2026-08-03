@@ -13,6 +13,7 @@ Interface construída em Streamlit e empacotada como aplicativo desktop nativo
 main.py                 Ponto de entrada do app desktop (sobe o servidor e abre a janela)
 app.py                  Interface Streamlit
 src/
+  config.py                Configurações (lê variáveis de ambiente / .env, com valores padrão)
   cnpj_utils.py          Limpeza, validação (dígito verificador) e formatação de CNPJ
   api_client.py           Cliente HTTP da BrasilAPI, com retry/backoff
   classifier.py            Regra de negócio de classificação do regime
@@ -22,9 +23,18 @@ src/
 assets/style.css          CSS customizado (cabeçalho, cards, badges)
 assets/icon.ico            Ícone do executável/janela
 build.spec                Configuração do PyInstaller
+.env.example               Modelo de configuração opcional (copie para .env para customizar)
 requirements.txt          Dependências da interface (usado também pelo Streamlit Community Cloud)
 requirements-desktop.txt   Dependências extras só para rodar/empacotar a versão desktop (pywebview, PyInstaller)
 ```
+
+## Configuração (opcional)
+
+O app funciona com valores padrão, sem nenhuma configuração adicional. Para
+customizar limites de requisição, timeouts ou as URLs das APIs, copie
+`.env.example` para `.env` e ajuste os valores — veja os comentários no
+próprio arquivo. Nada nele é obrigatório nem contém segredo algum, as APIs
+usadas (BrasilAPI e CNPJ.ws) são públicas e não exigem chave de acesso.
 
 ## Rodando em modo desenvolvimento (desktop)
 

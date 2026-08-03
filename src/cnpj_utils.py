@@ -14,30 +14,50 @@ def apenas_digitos(valor: str) -> str:
     return re.sub(r"\D", "", str(valor))
 
 
-def limpar_cnpj(valor: str) -> str:
-    """Extrai os dígitos de um CNPJ e completa com zeros à esquerda quando necessário.
+def _limpar_caracteres_cnpj(valor: str) -> str:
+    """Remove formatação (pontos, barra, hífen, espaços) preservando letras.
 
-    Quando a planilha guarda o CNPJ como número (não texto), o Excel descarta
-    zeros à esquerda, "05243856000101" vira "5243856000101". Completamos
-    com zeros à esquerda para não invalidar CNPJs legítimos que começam com 0.
+    Diferente do CPF, não da para descartar letras do CNPJ, porque os novos CNPJs são alfanuméricos (2026 em diante).
     """
-    digitos = apenas_digitos(valor)
-    if 0 < len(digitos) <= 14:
-        digitos = digitos.zfill(14)
-    return digitos
+    if valor is None:
+        return ""
+    return re.sub(r"[^0-9A-Za-z]", "", str(valor)).upper()
+
+
+def limpar_cnpj(valor: str) -> str:
+    """Extrai o CNPJ (dígitos e letras) e completa com zeros à esquerda quando necessário.
+    
+    Quando a planilha guarda o CNPJ como número (não texto), o Excel descarta zeros à esquerda, "05243856000101" vira "5243856000101".
+    Completamos com zeros à esquerda para não invalidar CNPJs legítimos que começam com 0.
+    """
+    cnpj = _limpar_caracteres_cnpj(valor)
+    if 0 < len(cnpj) <= 14:
+        cnpj = cnpj.zfill(14)
+    return cnpj
+
+
+def _valor_caractere(caractere: str) -> int:
+    """Valor numérico de um caractere do CNPJ para o dígito verificador: dígitos valem seu próprio valor,
+    letras (A-Z) valem seu código ASCII menos 48 (ex: 'A' = 65 - 48 = 17), regra oficial do CNPJ alfanumérico."""
+    return ord(caractere) - 48
 
 
 def _calcular_digito(base: str, pesos: list[int]) -> str:
-    soma = sum(int(digito) * peso for digito, peso in zip(base, pesos))
+    """Calcula o dígito verificador de um CNPJ a partir da base e da lista de pesos"""
+    soma = sum(_valor_caractere(caractere) * peso for caractere, peso in zip(base, pesos))
     resto = soma % 11
     return "0" if resto < 2 else str(11 - resto)
 
 
 def validar_cnpj(valor: str) -> bool:
-    """Valida um CNPJ pelo algoritmo oficial de dígitos verificadores."""
+    """Valida um CNPJ (numérico ou alfanumérico) pelo algoritmo oficial de dígitos verificadores.
+    Os 12 primeiros caracteres podem ser letras ou números; os 2 dígitos verificadores finais são sempre numéricos."""
+    
     cnpj = limpar_cnpj(valor)
 
     if len(cnpj) != 14:
+        return False
+    if not cnpj[12:].isdigit():
         return False
     if cnpj == cnpj[0] * 14:
         return False
@@ -49,8 +69,7 @@ def validar_cnpj(valor: str) -> bool:
 
 
 def validar_cpf(valor: str) -> bool:
-    """Verifica se o valor (sem completar com zeros) é um CPF válido — usado para
-    dar uma mensagem melhor quando alguém cola um CPF por engano no lugar de um CNPJ."""
+    """Verifica se o valor é um CPF válido, usado para exibir erro quando tem um CPF na base de consulta."""
     cpf = apenas_digitos(valor)
 
     if len(cpf) != 11:

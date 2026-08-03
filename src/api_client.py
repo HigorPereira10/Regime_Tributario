@@ -1,11 +1,12 @@
-"""Cliente HTTP para consulta de CNPJ na BrasilAPI, com retry/backoff."""
 import httpx
 from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-BASE_URL = "https://brasilapi.com.br/api/cnpj/v1/{cnpj}"
-FALLBACK_URL = "https://publica.cnpj.ws/cnpj/{cnpj}"
-TIMEOUT_PADRAO = 10.0
-TENTATIVAS_PADRAO = 5
+from .config import BRASILAPI_URL, CNPJ_WS_URL, TENTATIVAS, TIMEOUT_REQUISICAO
+
+BASE_URL = BRASILAPI_URL
+FALLBACK_URL = CNPJ_WS_URL
+TIMEOUT_PADRAO = TIMEOUT_REQUISICAO
+TENTATIVAS_PADRAO = TENTATIVAS
 
 
 class ErroTemporario(Exception):
@@ -17,12 +18,13 @@ class CNPJNaoEncontrado(Exception):
 
 
 def criar_client() -> httpx.Client:
-    """Cria um client HTTP reutilizável e seguro para uso concorrente entre threads."""
+    """Cria um client HTTP reutilizável e seguro para uso concorrente entre threads com 10 conexões simultâneas."""
     limites = httpx.Limits(max_connections=10, max_keepalive_connections=10)
     return httpx.Client(limits=limites, headers={"User-Agent": "consulta-regime-tributario/1.0"})
 
 
 def _fazer_requisicao(client: httpx.Client, cnpj: str, timeout: float) -> dict:
+    """Faz a requisição HTTP para a BrasilAPI, levantando exceções apropriadas em caso de falhas."""
     try:
         resposta = client.get(BASE_URL.format(cnpj=cnpj), timeout=timeout)
     except (httpx.TimeoutException, httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError) as exc:
@@ -45,8 +47,7 @@ def consultar_cnpj(
 ) -> dict:
     """Consulta um CNPJ na BrasilAPI, retentando com backoff em falhas temporárias.
 
-    Levanta CNPJNaoEncontrado se a Receita não tiver o CNPJ, ou ErroTemporario
-    se todas as tentativas de rede falharem.
+    Levanta CNPJNaoEncontrado se a Receita não tiver o CNPJ, ou ErroTemporario se todas as tentativas de rede falharem.
     """
     for tentativa in Retrying(
         stop=stop_after_attempt(tentativas),
@@ -73,10 +74,9 @@ def _extrair_dados_fallback(payload: dict) -> dict:
 def consultar_cnpj_fallback(client: httpx.Client, cnpj: str, timeout: float = TIMEOUT_PADRAO) -> dict:
     """Consulta de reforço na CNPJ.ws, usada só quando a BrasilAPI não encontra o CNPJ.
 
-    A BrasilAPI atualiza sua base periodicamente, então empresas abertas há
-    poucos dias podem não constar ainda mesmo já estando ativas na Receita.
-    A CNPJ.ws tem limite de 3 requisições/minuto no plano gratuito, por isso
-    só é usada como reforço pontual, nunca no lote principal.
+    A BrasilAPI atualiza sua base periodicamente, então empresas abertas há poucos dias podem não constar
+    ainda mesmo já estando ativas na Receita. A CNPJ.ws tem limite de 3 requisições/minuto no plano gratuito,
+    por isso só é usada como reforço pontual, nunca no lote principal.
     """
     try:
         resposta = client.get(FALLBACK_URL.format(cnpj=cnpj), timeout=timeout)
