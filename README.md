@@ -99,18 +99,6 @@ CNPJs mal formatados, inválidos, não encontrados na Receita ou com falha de
 conexão são marcados na respectiva linha ("CNPJ inválido", "CNPJ não
 encontrado" ou "Erro na consulta") sem interromper o processamento do lote.
 
-## Atualizando o app nos computadores do escritório
-
-Como cada colaborador tem uma cópia local instalada, atualizações de código
-exigem gerar um novo build (`PyInstaller build.spec`) e redistribuir a pasta
-`dist\RegimeTributario` novamente para cada máquina.
-
-## Deploy na nuvem (Streamlit Community Cloud)
-
-A interface (`app.py`) também roda como site, sem precisar do launcher
-desktop (`main.py`, que depende de `pywebview` e só funciona localmente).
-No Streamlit Community Cloud, ao criar o app, configure:
-
 - **Main file path:** `app.py`
 - Dependências: o serviço já lê o `requirements.txt` da raiz automaticamente
   (não usa o `requirements-desktop.txt`).
